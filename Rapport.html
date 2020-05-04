@@ -1,790 +1,440 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<title>Rapport.md</title>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    
+    <meta name="description" content=" # TP2: Les modèles HMC pour la segmentation de texte  *MA202 Modèles de Markov* *27 avril 2020*  Co">
+    
+    <title>TP2: Les modèles HMC pour la segmentation de texte - HackMD</title>
+    <link rel="icon" type="image/png" href="https://markdown.data-ensta.fr/favicon.png">
+  <link rel="apple-touch-icon" href="https://markdown.data-ensta.fr/apple-touch-icon.png">
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" integrity="sha256-3iu9jgsy9TpTwXKb7bNQzqWekRX7pPK+2OLj3R922fo=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css" integrity="sha256-QiWfLIsCT02Sdwkogf6YMiQlj4NE84MKkzEMkZnMGdg=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/css/basic/emojify.min.css" integrity="sha256-UOrvMOsSDSrW6szVLe8ZDZezBxh5IoIfgTwdNDgTjiU=" crossorigin="anonymous" />
+    
+<link href="https://markdown.data-ensta.fr/build/font.0b3492755fae330ae2bf.css" rel="stylesheet">
+
+<link href="https://markdown.data-ensta.fr/build/pretty-styles.0b3492755fae330ae2bf.css" rel="stylesheet">
+
+<link href="https://markdown.data-ensta.fr/build/pretty.0b3492755fae330ae2bf.css" rel="stylesheet">
+
+
+  
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js" integrity="sha256-3Jy/GbSLrg0o9y5Z5n1uw0qxZECH7C6OQpVBgNFYa0g=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js" integrity="sha256-g6iAfvZp+nDQ2TdTR/VVKJf3bGro4ub5fvWSWVRi2NE=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.9/es5-shim.min.js" integrity="sha256-8E4Is26QH0bD52WoQpcB+R/tcWQtpzlCojrybUd7Mxo=" crossorigin="anonymous"></script>
+<![endif]-->
 
-<style>
-/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
-body {
-	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
-	font-size: var(--vscode-markdown-font-size, 14px);
-	padding: 0 26px;
-	line-height: var(--vscode-markdown-line-height, 22px);
-	word-wrap: break-word;
-}
-
-#code-csp-warning {
-	position: fixed;
-	top: 0;
-	right: 0;
-	color: white;
-	margin: 16px;
-	text-align: center;
-	font-size: 12px;
-	font-family: sans-serif;
-	background-color:#444444;
-	cursor: pointer;
-	padding: 6px;
-	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
-}
-
-#code-csp-warning:hover {
-	text-decoration: none;
-	background-color:#007acc;
-	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
-}
-
-body.scrollBeyondLastLine {
-	margin-bottom: calc(100vh - 22px);
-}
-
-body.showEditorSelection .code-line {
-	position: relative;
-}
-
-body.showEditorSelection .code-active-line:before,
-body.showEditorSelection .code-line:hover:before {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 0;
-	left: -12px;
-	height: 100%;
-}
-
-body.showEditorSelection li.code-active-line:before,
-body.showEditorSelection li.code-line:hover:before {
-	left: -30px;
-}
-
-.vscode-light.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.15);
-}
-
-.vscode-light.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(0, 0, 0, 0.40);
-}
-
-.vscode-light.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-dark.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.4);
-}
-
-.vscode-dark.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 255, 255, 0.60);
-}
-
-.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-.vscode-high-contrast.showEditorSelection .code-active-line:before {
-	border-left: 3px solid rgba(255, 160, 0, 0.7);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line:hover:before {
-	border-left: 3px solid rgba(255, 160, 0, 1);
-}
-
-.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
-	border-left: none;
-}
-
-img {
-	max-width: 100%;
-	max-height: 100%;
-}
-
-a {
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-a:focus,
-input:focus,
-select:focus,
-textarea:focus {
-	outline: 1px solid -webkit-focus-ring-color;
-	outline-offset: -1px;
-}
-
-hr {
-	border: 0;
-	height: 2px;
-	border-bottom: 2px solid;
-}
-
-h1 {
-	padding-bottom: 0.3em;
-	line-height: 1.2;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-}
-
-h1, h2, h3 {
-	font-weight: normal;
-}
-
-table {
-	border-collapse: collapse;
-}
-
-table > thead > tr > th {
-	text-align: left;
-	border-bottom: 1px solid;
-}
-
-table > thead > tr > th,
-table > thead > tr > td,
-table > tbody > tr > th,
-table > tbody > tr > td {
-	padding: 5px 10px;
-}
-
-table > tbody > tr + tr > td {
-	border-top: 1px solid;
-}
-
-blockquote {
-	margin: 0 7px 0 5px;
-	padding: 0 16px 0 10px;
-	border-left-width: 5px;
-	border-left-style: solid;
-}
-
-code {
-	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
-	font-size: 1em;
-	line-height: 1.357em;
-}
-
-body.wordWrap pre {
-	white-space: pre-wrap;
-}
-
-pre:not(.hljs),
-pre.hljs code > div {
-	padding: 16px;
-	border-radius: 3px;
-	overflow: auto;
-}
-
-pre code {
-	color: var(--vscode-editor-foreground);
-	tab-size: 4;
-}
-
-/** Theming */
-
-.vscode-light pre {
-	background-color: rgba(220, 220, 220, 0.4);
-}
-
-.vscode-dark pre {
-	background-color: rgba(10, 10, 10, 0.4);
-}
-
-.vscode-high-contrast pre {
-	background-color: rgb(0, 0, 0);
-}
-
-.vscode-high-contrast h1 {
-	border-color: rgb(0, 0, 0);
-}
-
-.vscode-light table > thead > tr > th {
-	border-color: rgba(0, 0, 0, 0.69);
-}
-
-.vscode-dark table > thead > tr > th {
-	border-color: rgba(255, 255, 255, 0.69);
-}
-
-.vscode-light h1,
-.vscode-light hr,
-.vscode-light table > tbody > tr + tr > td {
-	border-color: rgba(0, 0, 0, 0.18);
-}
-
-.vscode-dark h1,
-.vscode-dark hr,
-.vscode-dark table > tbody > tr + tr > td {
-	border-color: rgba(255, 255, 255, 0.18);
-}
-
-</style>
-
-<style>
-/* Tomorrow Theme */
-/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
-/* Original theme - https://github.com/chriskempson/tomorrow-theme */
-
-/* Tomorrow Comment */
-.hljs-comment,
-.hljs-quote {
-	color: #8e908c;
-}
-
-/* Tomorrow Red */
-.hljs-variable,
-.hljs-template-variable,
-.hljs-tag,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class,
-.hljs-regexp,
-.hljs-deletion {
-	color: #c82829;
-}
-
-/* Tomorrow Orange */
-.hljs-number,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params,
-.hljs-meta,
-.hljs-link {
-	color: #f5871f;
-}
-
-/* Tomorrow Yellow */
-.hljs-attribute {
-	color: #eab700;
-}
-
-/* Tomorrow Green */
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet,
-.hljs-addition {
-	color: #718c00;
-}
-
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-	color: #4271ae;
-}
-
-/* Tomorrow Purple */
-.hljs-keyword,
-.hljs-selector-tag {
-	color: #8959a8;
-}
-
-.hljs {
-	display: block;
-	overflow-x: auto;
-	color: #4d4d4c;
-	padding: 0.5em;
-}
-
-.hljs-emphasis {
-	font-style: italic;
-}
-
-.hljs-strong {
-	font-weight: bold;
-}
-</style>
-
-<style>
-/*
- * Markdown PDF CSS
- */
-
- body {
-	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
-	padding: 0 12px;
-}
-
-pre {
-	background-color: #f8f8f8;
-	border: 1px solid #cccccc;
-	border-radius: 3px;
-	overflow-x: auto;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-}
-
-pre:not(.hljs) {
-	padding: 23px;
-	line-height: 19px;
-}
-
-blockquote {
-	background: rgba(127, 127, 127, 0.1);
-	border-color: rgba(0, 122, 204, 0.5);
-}
-
-.emoji {
-	height: 1.4em;
-}
-
-code {
-	font-size: 14px;
-	line-height: 19px;
-}
-
-/* for inline code */
-:not(pre):not(.hljs) > code {
-	color: #C9AE75; /* Change the old color so it seems less like an error */
-	font-size: inherit;
-}
-
-/* Page Break : use <div class="page"/> to insert page break
--------------------------------------------------------- */
-.page {
-	page-break-after: always;
-}
-
-</style>
-
-<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
 </head>
-<body>
-  <script>
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
-          ? 'dark'
-          : 'default'
-    });
-  </script>
-<h1 id="tp2-les-mod%C3%A8les-hmc-pour-la-segmentation-de-texte">TP2: Les modèles HMC pour la segmentation de texte</h1>
-<p><em>MA202 Modèles de Markov</em></p>
-<p><em>27 avril 2020</em></p>
-<p>Corentin Soubeiran</p>
-<p>Chargé de TD: E. Azeraf
-Professeur: W. Pieczynski</p>
-<img src=https://upload.wikimedia.org/wikipedia/commons/4/45/Logo_ENSTA_Paris.jpg width="10%">
-## Question 1:
---------------
-Démontrons l'écriture du Forward et backward: 
-<h3 id="forward">Forward:</h3>
-<p>En adoptant les notations du TD nous avons:</p>
-<p>$$\alpha_i(t)=\mathbb{P}(X_t=i,y_{1:t})$$</p>
-<p>Ainsi:</p>
-<p>$$\alpha_i(1)=\mathbb{P}(X_1=i,y_{1:1})$$</p>
-<p>$$=\mathbb{P}(X_1=i,y_1)=\mathbb{P}(y_1|X_1=i)\mathbb{P}(X_1=i)=b_i(y_1)\pi_i$$</p>
-<p>donc : $\boxed{\alpha_i(1)=b_i(y_1)\pi_i}$</p>
-<p>De plus:</p>
-<p>$$\alpha_i(t+1)=\mathbb{P}(X_{t+1}=i,y_{1:t+1})$$</p>
-<p>Par les probas totales:</p>
-<p>$\mathbb{P}(X_{t+1}=i,y_{1:t+1})=\sum_{j={1:T}}[\mathbb{P}(X_t=j,X_{t+1}=i,y_{1:t},y_{t+1})]$</p>
-<p><em><strong>(1)</strong></em>: $\alpha_i(t+1)=\sum_{j={1:T}}[\mathbb{P}(X_t=j,y_{1:t})\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]$</p>
-<p>On remarque alors que:</p>
-<ul>
-<li>
-<p><em><strong>(2)</strong></em>:  $\mathbb{P}(X_t=j,y_{1:t})=\alpha_j(t)$</p>
-</li>
-<li>
-<p>Grâce aux hypothèses de CMC on à
-$$\mathbb{P}(X_t=j,X_{t+1}=i,y_{1:t},y_{t+1})=\mathbb{P}(X_t=j)\mathbb{P}(X_{t+1}=i|X_t=j)\mathbb{P}(y_{t}|X_t=j)\mathbb{P}(y_{t+1}|X_{t+1}=i)=\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]\mathbb{P}(X_t=j,y_{1:t})$$</p>
-<p>or:
-$$\mathbb{P}(X_t=j,y_{1:t})=\mathbb{P}(X_t=j)\mathbb{P}(y_t|X_t=j)$$</p>
-<p>d'où:
-$$\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]=\mathbb{P}(X_{t+1}=i|X_t=j)\mathbb{P}(y_{t+1}|X_t=j)$$</p>
-</li>
-<li>
-<p>Avec la matrice de transition on a <em><strong>(3)</strong></em>:
-$$\mathbb{P}(X_{t+1}=i|X_t=j)=A'<em>{(i,j)}=A</em>{(j,i)}=a_{ji}$$</p>
-</li>
-<li>
-<p>Et la probabilité d'émission <em><strong>(4)</strong></em>:
-$$\mathbb{P}(y_{t+1}|X_t=j)=b_j(y_{t+1})$$</p>
-</li>
-</ul>
-<p>En réunissant les formules <em><strong>3</strong></em> et <em><strong>4</strong></em> dans <em><strong>1</strong></em> avec <em><strong>2</strong></em>, on a enfin:
-$$\boxed{\alpha_i(t+1)=\sum_{j={1:T}}[\alpha_j(t)a_{ji}b_j(y_{t+1})]=b_j(y_{t+1})\sum_{j={1:T}}[\alpha_j(t)a_{ji}]}$$</p>
-<h3 id="backward">Backward:</h3>
-<p>On a:</p>
-<p>$$\beta_i(t)=\mathbb{P}(y_{t+1:T}|X_t=i)$$</p>
-<p>Pour l'initialisation:</p>
-<p>$$\boxed{\beta_i(T)=\mathbb{P}(y_{T+1:T}|X_T=i):=1}$$</p>
-<p>Pour la récurence par les proba totales <em><strong>(5)</strong></em>:
-$$\beta_i(t)=\sum_{j={1:T}}[\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)$$</p>
-<p>On remarque que:</p>
-<ul>
-<li>$$\mathbb{P}(X_t=i,X_{t+1},y_{t+1:T})=\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)\mathbb{P}(X_t=i)$$</li>
-<li>$$\mathbb{P}(X_t=i,X_{t+1},y_{t+1:T})=\mathbb{P}(X_t=i)\mathbb{P}(X_{t+1}=j|X_t=i)\mathbb{P}(y_{t+1}|X_{t+1}=j)\mathbb{P}(y_{n+2:N}|x_{n+1})$$</li>
-</ul>
-<p>on en déduit que <em><strong>(6)</strong></em>:
-$$\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)=\mathbb{P}(X_{t+1}=j|X_t=i)\mathbb{P}(y_{t+1}|X_{t+1}=j)\mathbb{P}(y_{n+2:N}|X_{n+1}=j)$$</p>
-<p>On remarque également:</p>
-<ul>
-<li>$\mathbb{P}(X_{t+1}=j|X_t=i)=a_{ij}$ (cf. forward)</li>
-<li>$\mathbb{P}(y_{t+1}|X_{t+1}=j)=b_j(y_{t+1})$ (probabilité d'émission)</li>
-<li>$\mathbb{P}(y_{n+2:N}|X_{n+1}=j)=\beta_j(t+1)$</li>
-</ul>
-<p>En injectant ces trois dernière remaques dans <em><strong>6</strong></em> puis <em><strong>5</strong></em>:
-$$\boxed{\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)=\sum_{j={1:T}}[a_{ij}b_j(y_{t+1})\beta_j(t+1)]}$$</p>
-<h2 id="question-2">Question 2:</h2>
-<hr>
-<h3 id="1-estimation-des-param%C3%A8tres">1. Estimation des paramètres</h3>
-<p>La loi à priori à priori $\pi$ peut être aproximé dans un premier temps la fréquence, en tant qu'application du théorème de la loi des grand nombre avec T grand.
+
+<body style="display:none;">
+    <div class="ui-infobar container-fluid unselectable hidden-print">
+        <small>
+            <span>
+                
+                    <span class="ui-lastchangeuser">&thinsp;<i class="ui-user-icon small" style="background-image: url(https://www.gravatar.com/avatar/51630f7970653d4d11f6554b914b1641?s=96);" data-toggle="tooltip" data-placement="right" title="Corentin SOUBEIRAN"></i></span>
+                
+                &nbsp;<span class="text-uppercase ui-status-lastchange"></span>
+                <span class="ui-lastchange text-uppercase" data-createtime="Mon May 04 2020 14:51:26 GMT+0200 (CEST)" data-updatetime="Mon May 04 2020 14:55:24 GMT+0200 (CEST)"></span>
+            </span>
+            <span class="pull-right">2 views <a href="#" class="ui-edit" title="Edit this note"><i class="fa fa-fw fa-pencil"></i></a></span>
+            <br>
+            
+        </small>
+    </div>
+    <div id="doc" class="container markdown-body">
+# TP2: Les modèles HMC pour la segmentation de texte
+
+*MA202 Modèles de Markov*
+*27 avril 2020*
+
+Corentin Soubeiran
+
+Chargé de TD: E. Azeraf
+Professeur: W. Pieczynski
+
+&lt;img src=https://upload.wikimedia.org/wikipedia/commons/4/45/Logo_ENSTA_Paris.jpg width=&#34;10%&#34;&gt;
+
+## Question 1
+
+Démontrons l&#39;écriture du Forward et backward.
+
+### Forward
+
+En adoptant les notations du TD nous avons:
+
+$$\alpha_i(t)=\mathbb{P}(X_t=i,y_{1:t})$$
+
+Ainsi:
+
+$$\alpha_i(1)=\mathbb{P}(X_1=i,y_{1:1})$$
+
+$$=\mathbb{P}(X_1=i,y_1)=\mathbb{P}(y_1|X_1=i)\mathbb{P}(X_1=i)=b_i(y_1)\pi_i$$
+
+donc : $\boxed{\alpha_i(1)=b_i(y_1)\pi_i}$
+
+De plus:
+
+$$\alpha_i(t+1)=\mathbb{P}(X_{t+1}=i,y_{1:t+1})$$
+
+Par les probas totales:
+
+$\mathbb{P}(X_{t+1}=i,y_{1:t+1})=\sum_{j={1:T}}[\mathbb{P}(X_t=j,X_{t+1}=i,y_{1:t},y_{t+1})]$
+
+***(1)***: $\alpha_i(t+1)=\sum_{j={1:T}}[\mathbb{P}(X_t=j,y_{1:t})\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]$
+
+On remarque alors que:
+
+- ***(2)*** : $\mathbb{P}(X_t=j,y_{1:t})=\alpha_j(t)$
+- Grâce aux hypothèses de CMC on a:
+
+$$\mathbb{P}(X_t=j,X_{t+1}=i,y_{1:t},y_{t+1})=\mathbb{P}(X_t=j)\mathbb{P}(X_{t+1}=i|X_t=j)\mathbb{P}(y_{t}|X_t=j)\mathbb{P}(y_{t+1}|X_{t+1}=i)$$
+$$=\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]\mathbb{P}(X_t=j,y_{1:t})$$
+or:
+$$\mathbb{P}(X_t=j,y_{1:t})=\mathbb{P}(X_t=j)\mathbb{P}(y_t|X_t=j)$$
+d&#39;où:
+$$\mathbb{P}(X_{t+1}=i,y_{t+1}|X_t=j,y_{1:t})]=\mathbb{P}(X_{t+1}=i|X_t=j)\mathbb{P}(y_{t+1}|X_t=j)$$
+
+- Avec la matrice de transition on a ***(3)***:
+
+$$\mathbb{P}(X_{t+1}=i|X_t=j)=A&#39;_{(i,j)}=A_{(j,i)}=a_{ji}$$
+
+- Et la probabilité d&#39;émission ***(4)***:
+
+$$\mathbb{P}(y_{t+1}|X_t=j)=b_j(y_{t+1})$$
+
+En réunissant les formules ***3*** et ***4*** dans ***1*** avec ***2***, on a enfin:
+$$\boxed{\alpha_i(t+1)=\sum_{j={1:T}}[\alpha_j(t)a_{ji}b_j(y_{t+1})]=b_j(y_{t+1})\sum_{j={1:T}}[\alpha_j(t)a_{ji}]}$$
+
+### Backward
+
+On a:
+
+$$\beta_i(t)=\mathbb{P}(y_{t+1:T}|X_t=i)$$
+
+Pour l&#39;initialisation:
+
+$$\boxed{\beta_i(T)=\mathbb{P}(y_{T+1:T}|X_T=i):=1}$$
+
+Pour la récurence par les proba totales ***(5)***:
+$$\beta_i(t)=\sum_{j={1:T}}[\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)$$
+
+On remarque que:
+
+- $$\mathbb{P}(X_t=i,X_{t+1},y_{t+1:T})=\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)\mathbb{P}(X_t=i)$$
+- $$\mathbb{P}(X_t=i,X_{t+1},y_{t+1:T})=\mathbb{P}(X_t=i)\mathbb{P}(X_{t+1}=j|X_t=i)\mathbb{P}(y_{t+1}|X_{t+1}=j)\mathbb{P}(y_{n+2:N}|x_{n+1})$$
+
+on en déduit que ***(6)***:
+$$\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)=\mathbb{P}(X_{t+1}=j|X_t=i)\mathbb{P}(y_{t+1}|X_{t+1}=j)\mathbb{P}(y_{n+2:N}|X_{n+1}=j)$$
+
+On remarque également:
+
+- $\mathbb{P}(X_{t+1}=j|X_t=i)=a_{ij}$ (cf. forward)
+- $\mathbb{P}(y_{t+1}|X_{t+1}=j)=b_j(y_{t+1})$ (probabilité d&#39;émission)
+- $\mathbb{P}(y_{n+2:N}|X_{n+1}=j)=\beta_j(t+1)$
+
+En injectant ces trois dernière remaques dans ***6*** puis ***5***:
+$$\boxed{\mathbb{P}(X_{t+1},y_{t+1:T}|X_t=i)=\sum_{j={1:T}}[a_{ij}b_j(y_{t+1})\beta_j(t+1)]}$$
+
+## Question 2
+
+### 1. Estimation des paramètres
+
+La loi à priori à priori $\pi$ peut être aproximé dans un premier temps la fréquence, en tant qu&#39;application du théorème de la loi des grand nombre avec T grand.
 Ainsi:
 $$\pi_i=\mathbb{P}(X_t=i)$$
 Est appoximé par:
-$$\hat{\pi}_i=\frac{|{t | X_t=i}|}{T}$$</p>
-<p>En observant le code dans la fonction \textit{HMC_Learning_parameters.py} nous remarquons que c'est ce qui est fait, on considère tou les subset du dataset et on compte le nombre d'occurance d'une catégorie de notre ensemble $\Omega_X$ avant de diviser par le nombre total de données en considerant toute les catégorie. Soit donc le pseudo code suivant:</p>
-<pre class="hljs"><code><div>- Pour tout subset du dataset
+$$\hat{\pi}_i=\frac{|\{t | X_t=i\}|}{T}$$
+
+En observant le code dans la fonction \textit{HMC\_Learning\_parameters.py} nous remarquons que c&#39;est ce qui est fait, on considère tou les subset du dataset et on compte le nombre d&#39;occurance d&#39;une catégorie de notre ensemble $\Omega_X$ avant de diviser par le nombre total de données en considerant toute les catégorie. Soit donc le pseudo code suivant:
+
+```pseudo
+- Pour tout subset du dataset
     - élement Zi du subset de catégorie x:
         Ajouter 1 à pi de la catégorie x
-- Calculer sum_pi comme la somme de tous les pi (nombre d'élément dans tous les dataset) (cardial) 
-- Pour tout x catégorie dans l'ensemble des catégories
+- Calculer sum_pi comme la somme de tous les pi 
+  (nombre d&#39;élément dans tous les dataset) (cardial) 
+- Pour tout x catégorie dans l&#39;ensemble des catégories
     Diviser pi de la catégorie x par sum_pi
-</div></code></pre>
-<p>Qui revient bien à ce qui est fait dans le code python, dans ce code la manipulation de dictionaire implique tout de même la création dynamique des catégories ce qui correspond aux <code>not in</code></p>
-<p>La procédure pour l'estimation de $A$ (matrice de transition) et $B$ (probabilité d'émission) suit le même principe
+```
+
+Qui revient bien à ce qui est fait dans le code python, dans ce code la manipulation de dictionaire implique tout de même la création dynamique des catégories ce qui correspond aux ```not in```
+
+La procédure pour l&#39;estimation de $A$ (matrice de transition) et $B$ (probabilité d&#39;émission) suit le même principe
 pour $A$:
 $$A_{ij}=\mathbb{P}(X_t=j|X_{t-1}=i)=\frac{\mathbb{P}(X_t=j,X_{t-1}=i)}{\mathbb{P}(X_{t-1}=i)}$$
-$$\hat{A_{ij}}=\frac{|{t| X_t=j \cap X_{t-1}=i, t\in {2:T}}|}{|{t| X_{t-1}=i, t\in {2:T}}|}=\frac{nombre\ de\ transition\ de\ la\ catégorie\ i\ à\ j}{nombre\ total\ de\ transitions\ depuis\ l'état\ i}$$</p>
-<p>pour $B$:
+$$\hat{A_{ij}}=\frac{|\{t| X_t=j \cap X_{t-1}=i\, t\in \{2:T\}\}|}{|\{t| X_{t-1}=i, t\in \{2:T\}\}|}=\frac{nombre\ de\ transition\ de\ la\ catégorie\ i\ à\ j}{nombre\ total\ de\ transitions\ depuis\ l&#39;état\ i}$$
+
+pour $B$:
 $$b_{i}(y)=\mathbb{P}(Y_t=y|X_{t}=i)=\frac{\mathbb{P}(Y_t=y,X_{t}=i)}{\mathbb{P}(X_{t}=i)}$$
-$$\hat{b_i(y)}=\frac{|{t| Y_t=y \cap X_{t}=i, t\in {1:T}}|}{|{t| X_{t-1}=i, t\in {1:T}}|}=\frac{occurance\ de\ l'observation\ y\ correspondant\ à\ un\ état\ i}{nombre\ d'observations\ correspondant\ à\ un\ état\ i}$$</p>
-<h3 id="2-interet-des-dictionnaires">2. Interet des dictionnaires</h3>
-<p>Un dictionnaire est un objet python où les données sont associés à des clés contrairement au liste ou les données sont dans un ordre. Le premier avantage est il me semble algorithmique car les dictionaire sont codées avec une table de hachage, le temps de recherche d'un élément est en complexité $O(1)$ contrairement au listes qui si elles ne sont pas triés sont en $O(n)$ ou au mieux en $O(log(n))$ aprés un tri.
-Dans notre cas un autre avantage est la compréhension et la facilité d'acces dans cet objet. En effet on travail ici avec des mots, si nous utilisions des listes il faudrait définir un index faisant le lien entre un mot et un indice, indice que l'on utilise ensuite pour mettre les données au bon endroit dans la liste. Ce qui n'est pas optimal car la recherche dans la liste pour l'ajout d'un index sera en $O(n_1)$ et la sauvegarde en $O(n_2)$ alors que dans un dictionaire l'absence de présence est en $O(1)$ et l'ajout d'un élement au pire en $O(n_2). Ainsi l'acces d'une donnée à un mot grace à ce mot directement dans le dictionnaire est tout de même bien plus simple non seulement d'un points de vu algorithmique que d'un point de vu de compréhension.</p>
-<h3 id="3-estimation-par-maximum-de-vraissemblance-emv">3. Estimation par maximum de vraissemblance (EMV)</h3>
-<h4 id="pour-pii">Pour $\pi_i$:</h4>
-<p>On a :
+$$\hat{b_i(y)}=\frac{|\{t| Y_t=y \cap X_{t}=i\, t\in \{1:T\}\}|}{|\{t| X_{t-1}=i, t\in \{1:T\}\}|}=\frac{occurance\ de\ l&#39;observation\ y\ correspondant\ à\ un\ état\ i}{nombre\ d&#39;observations\ correspondant\ à\ un\ état\ i}$$
+
+### 2. Interet des dictionnaires
+
+Un dictionnaire est un objet python où les données sont associés à des clés contrairement au liste ou les données sont dans un ordre. Le premier avantage est il me semble algorithmique car les dictionaire sont codées avec une table de hachage, le temps de recherche d&#39;un élément est en complexité $O(1)$ contrairement au listes qui si elles ne sont pas triés sont en $O(n)$ ou au mieux en $O(log(n))$ aprés un tri.
+Dans notre cas un autre avantage est la compréhension et la facilité d&#39;acces dans cet objet. En effet on travail ici avec des mots, si nous utilisions des listes il faudrait définir un index faisant le lien entre un mot et un indice, indice que l&#39;on utilise ensuite pour mettre les données au bon endroit dans la liste. Ce qui n&#39;est pas optimal car la recherche dans la liste pour l&#39;ajout d&#39;un index sera en $O(n_1)$ et la sauvegarde en $O(n_2)$ alors que dans un dictionaire l&#39;absence de présence est en $O(1)$ et l&#39;ajout d&#39;un élement au pire en $O(n_2). Ainsi l&#39;acces d&#39;une donnée à un mot grace à ce mot directement dans le dictionnaire est tout de même bien plus simple non seulement d&#39;un points de vu algorithmique que d&#39;un point de vu de compréhension.
+
+### 3. Estimation par maximum de vraissemblance (EMV)
+
+#### Pour $\pi_i$
+
+On a :
 $$\pi_i=\mathbb{P}(X_t=i)$$
-C'est la probabilité qu'un élément de $X=(X_1, ... X_T$ soit dans la catégorie $i$. On peut donc imaginer qu'un élement $X_t$ de $X$ suit une loi binomiale de paramètres $\pi_i$ d'être dans la catégorie $i$.
-On a alors:
+C&#39;est la probabilité qu&#39;un élément de $X=(X_1, ... X_T$ soit dans la catégorie $i$. On peut donc imaginer qu&#39;un élement $X_t$ de $X$ suit une loi binomiale de paramètres $\pi_i$ d&#39;être dans la catégorie $i$.
+On a alors: 
 $$X_t\sim B(\pi_i)$$
 On en déduit la vraissemblance:
 $$L_T(X_{1:T},\pi_i)=\prod_{t=1}^{T}{ \mathbb{P}_{\pi_i}(X_t=i)}=\pi_i^s(1-\pi_i)^{T-s}$$
-Où $s$ représente ici le nombre de &quot;succes&quot; c'est à dire de $X_t$ de classe $i$, Ainsi l'estimateur du maximum de vraissemblances $\hat{\pi_i}$ est trouvé par:
+Où $s$ représente ici le nombre de &#34;succes&#34; c&#39;est à dire de $X_t$ de classe $i$, Ainsi l&#39;estimateur du maximum de vraissemblances $\hat{\pi_i}$ est trouvé par:
 $$\frac{\delta L_T}{\delta \hat{\pi_i}}=\hat{\pi_i}^{s-1}(1-\hat{\pi_i})^{T-s-1}(s-T\hat{\pi_i})=0 \iff \hat{\pi_i}=\frac{s}{T}$$
 Car (en passant par le log pour me simplifier les calculs):
 $$\frac{\delta^2 L_T}{\delta^2 \hat{\pi_i}}=-s\frac{1}{\hat{pi_i}}-(T-s)\frac{1}{1-\hat{pi_i}}=-2T&lt;0$$
-Conclusion l'estimateur du maximum de vraissemblance:
+Conclusion l&#39;estimateur du maximum de vraissemblance:
 $$\boxed{\hat{\pi_i}=\frac{s}{T}}$$
-C'est bien l'estimateur utilisé dans le code d'après ce que nous avons décrit au $2.1$</p>
-<h4 id="pour-aij">Pour $A_{ij}$:</h4>
-<p>On a:
+C&#39;est bien l&#39;estimateur utilisé dans le code d&#39;après ce que nous avons décrit au $2.1$
+
+#### Pour $A_{ij}$
+
+On a:
 $$A_{ij}=\mathbb{P}(X_t=j|X_{t-1}=i)$$
-Il s'agit en fait de la probabilité de transition de l'état i à j en une étape. Comme précedement on peut modéliser la situation comme $Z_k(i)$ la variable aléatoire valant 1 si $X_t=j$ et $0$ sinon dans $X_{t-1}=i$, loi de $X_t=j$ conditionnellement à $X_{t-1}=i$. Ici $k$ à valeur entre 0 et le nombre de variable de $X$ de classe $i$ que nous notons $n_i$.
+Il s&#39;agit en fait de la probabilité de transition de l&#39;état i à j en une étape. Comme précedement on peut modéliser la situation comme $Z_k(i)$ la variable aléatoire valant 1 si $X_t=j$ et $0$ sinon dans $X_{t-1}=i$, loi de $X_t=j$ conditionnellement à $X_{t-1}=i$. Ici $k$ à valeur entre 0 et le nombre de variable de $X$ de classe $i$ que nous notons $n_i$.
 On a:
 $$Z_k(i)\sim B(a_{ij})$$
-En reprennant le calcul précédant on a:</p>
-<ul>
-<li>$s$ que nous notons maintenant $n_{i\rightarrow j}$ le nombre de varaible $X_t$ de catégorie $j$ tel que $X_{t-1}=i$</li>
-<li>$T$ que nous notons maintenant $n_i$ le nombre de $X_t$ valant $i$</li>
-</ul>
-<p>Ainsi le résonnement précédant s'applique aussi ici et:
+
+En reprennant le calcul précédant on a:
+
+- $s$ que nous notons maintenant $n_{i\rightarrow j}$ le nombre de varaible $X_t$ de catégorie $j$ tel que $X_{t-1}=i$
+- $T$ que nous notons maintenant $n_i$ le nombre de $X_t$ valant $i$
+
+Ainsi le résonnement précédant s&#39;applique aussi ici et:
 $$\boxed{\hat{a_{ij}}=\frac{n_{i\rightarrow j}}{n_i}}$$
-C'est bien l'estimateur utilisé dans le code d'après ce que nous avons décrit au $2.1$</p>
-<h4 id="pour-biy">Pour $b_i(y)$:</h4>
-<p>On a:
-$$b_i(y)=\mathbb{P}(Y_t=y|X_t=i)$$
-Il s'agit de la probabilité qu'un observation prenne la valeur $y$ sachant que la catégorie qui lui est associé vaut $i$. Ici $y$ est un mot de l'espace $\Omega_y$ fini (l'ensemble des mots d'une langue est un espace fini). En notant $W_m(i)$  la variable aléatoire valant 1 si $Y_t=y$ et $0$ sinon dans $X_{t}=i$, loi de $Y_t=y$ conditionnellement à $X_{t}=i$. Ici $m$ à valeur entre $0$ et le nombre de mot de catégorie $i$ noté $n_i$.
+C&#39;est bien l&#39;estimateur utilisé dans le code d&#39;après ce que nous avons décrit au $2.1$
+
+#### Pour $b_i(y)$
+
 On a:
+$$b_i(y)=\mathbb{P}(Y_t=y|X_t=i)$$
+Il s&#39;agit de la probabilité qu&#39;un observation prenne la valeur $y$ sachant que la catégorie qui lui est associé vaut $i$. Ici $y$ est un mot de l&#39;espace $\Omega_y$ fini (l&#39;ensemble des mots d&#39;une langue est un espace fini). En notant $W_m(i)$  la variable aléatoire valant 1 si $Y_t=y$ et $0$ sinon dans $X_{t}=i$, loi de $Y_t=y$ conditionnellement à $X_{t}=i$. Ici $m$ à valeur entre $0$ et le nombre de mot de catégorie $i$ noté $n_i$.
+On a: 
 $$W_m(i)\sim B(b_{i}(y))$$
-En reprennant le calcul précédant on a:</p>
-<ul>
-<li>$s$ que nous notons maintenant $n_{y}$ le nombre de varaible $Y_t$ valant le mot $y$ de catégorie $X_{t}=i$</li>
-<li>$T$ que nous notons maintenant $n_i$ le nombre de $X_t$ valant $i$</li>
-</ul>
-<p>Ainsi le résonnement précédant s'applique aussi ici et:
+
+En reprennant le calcul précédant on a:
+
+- $s$ que nous notons maintenant $n_{y}$ le nombre de varaible $Y_t$ valant le mot $y$ de catégorie $X_{t}=i$
+- $T$ que nous notons maintenant $n_i$ le nombre de $X_t$ valant $i$ 
+
+Ainsi le résonnement précédant s&#39;applique aussi ici et: 
 $$\boxed{\hat{b_{i}(y)}=\frac{n_{y}}{n_i}}$$
-C'est bien l'estimateur utilisé dans le code d'après ce que nous avons décrit au $2.1$</p>
-<h2 id="question-3">Question 3:</h2>
-<hr>
-<p><em>Algorithmique</em></p>
-<h2 id="question-4">Question 4:</h2>
-<hr>
-<h3 id="chunking">Chunking</h3>
-<p>Le Chunking permet la décomposition syntaxique.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>Chunking</em></th>
-<th style="text-align:center">Dataset 2000</th>
-<th style="text-align:center">Dataset 2003</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Accuracy</strong></td>
-<td style="text-align:center">7.19%</td>
-<td style="text-align:center">5.62%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">6.68%</td>
-<td style="text-align:center">5.21%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">14.05%</td>
-<td style="text-align:center">8.93%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>Time</strong></td>
-<td style="text-align:center">0.17s</td>
-<td style="text-align:center">0.34s</td>
-</tr>
-</tbody>
-</table>
-<h3 id="pos">POS</h3>
-<p>Le Part Of Speech consiste à labeliser les mots par leur fonction gamaticale</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>POS</em></th>
-<th style="text-align:center">Dataset 2000</th>
-<th style="text-align:center">Dataset 2003</th>
-<th style="text-align:center">Dataset UD English</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Accuracy</strong></td>
-<td style="text-align:center">5.36%</td>
-<td style="text-align:center">9.91%</td>
-<td style="text-align:center">11.16%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">1.94%</td>
-<td style="text-align:center">3.98%</td>
-<td style="text-align:center">6.22%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">50.94%</td>
-<td style="text-align:center">57.09%</td>
-<td style="text-align:center">65.27%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>Time</strong></td>
-<td style="text-align:center">0.18s</td>
-<td style="text-align:center">0.21s*</td>
-<td style="text-align:center">0.27s</td>
-</tr>
-</tbody>
-</table>
-<p>*: le code donné ne calculait pas ce temps, je me suis permis de rajouter les lignes necessaire dans <em>hmc_pos_conll2003.py</em>.</p>
-<h3 id="ner">NER</h3>
-<p>La Named entity recognition correspond à la reconaissance des noms propres</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>NER dataset 2003</em></th>
-<th style="text-align:center">Précision</th>
-<th style="text-align:center">Recall</th>
-<th style="text-align:center">F1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Résultat</strong></td>
-<td style="text-align:center">0.62</td>
-<td style="text-align:center">0.86</td>
-<td style="text-align:center">0.72</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">0.87</td>
-<td style="text-align:center">0.87</td>
-<td style="text-align:center">0.87</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">0.006</td>
-<td style="text-align:center">0.52</td>
-<td style="text-align:center">0.01</td>
-</tr>
-</tbody>
-</table>
-<h3 id="remarque-sur-le-f1-score">Remarque sur le F1 score</h3>
-<p>Le F1 score est définit comme:
+C&#39;est bien l&#39;estimateur utilisé dans le code d&#39;après ce que nous avons décrit au $2.1$
+
+## Question 3
+
+_Algorithmique_
+
+## Question 4
+
+### Chunking
+
+Le Chunking permet la décomposition syntaxique.
+| *Chunking* | Dataset 2000       | Dataset 2003   |
+| :---------- |:---------:|:----------:|
+| **Accuracy**    | 7.19%   | 5.62%|
+| **KW**       | 6.68%   |  5.21%|
+| **UW**          | 14.05%   | 8.93%|
+| **Time**        | 0.17s   |  0.34s|
+
+### POS
+
+Le Part Of Speech consiste à labeliser les mots par leur fonction gamaticale
+| *POS*         | Dataset 2000| Dataset 2003|Dataset UD English|
+| :---------- |:-----------:|:-----------:|:-------:|
+| **Accuracy**    | 5.36%       | 9.91%       | 11.16%  |
+| **KW**          | 1.94%       |  3.98%      | 6.22%   |
+| **UW**          | 50.94%      | 57.09%      | 65.27%  |
+| **Time**        | 0.18s         | 0.21s*    | 0.27s   |
+
+\*: le code donné ne calculait pas ce temps, je me suis permis de rajouter les lignes necessaire dans *hmc_pos_conll2003.py*.
+
+### NER
+
+La Named entity recognition correspond à la reconaissance des noms propres
+| *NER dataset 2003* | Précision  | Recall | F1|
+| :---------- |:---------:|:---------:|:---------:|
+| **Résultat**| 0.62      | 0.86      | 0.72|
+| **KW**      |   0.87    | 0.87      | 0.87|
+| **UW**      | 0.006     |  0.52     | 0.01|
+
+### Remarque sur le F1 score
+
+Le F1 score est définit comme:
 $$F1=\frac{2}{recall^{-1}+precision^{-1}}$$
 où:
 $$recall=\frac{\text{vrai positif}}{\text{faux négatif + vrai positif}} \ \text{(sensibilité ou puissance en français)}$$
-$$precision=\frac{\text{vrai positif}}{\text{positif}} $$</p>
-<p>Le recall <em>(true posotive rate)</em> permet de représenter la proportion d'item positif corectement classé comme positif.
-La précision <em>(positive predictive value)</em> représente la proportion d'item classé positif à raison (parmis les positifs).</p>
-<p>Le score <em>F1</em> permet donc de quantifier la qualité d'un test, sa maximisation permet d'avoir un compromis entre sa capacité à bien identifier un cas positif (précision) tout en restant sensible à un cas (recall).</p>
-<p>En effet la maximisation du <em>recall</em> ou de la <em>precision</em> seul n'est pas viable, pour avoir un <em>recall=1</em> il suffit de classer tous les cas comme positif on a alors aucun faux négatif, mais notre test ne sers à rien puisque par exemple dans un contexte comme celui actuel il correspond à dire que tous le monde est malade. A l'inverse avoir <em>precision=1</em> correspond à tendre vers le cas limite ou le nombre de faux positifs est nul et donc dans notre cas à ne considerer personne comme malade. On voit que le compromis entre les deux est indispensable.</p>
-<p>Ce qui est appellé <em>accuracy</em> pour le POS et le Chunking correspond au taux d'erreur de classification (à plusieurs niveau). De plus précisons que le un vrai positif pour le score <em>F1</em> correspond à classer un terme à raison dans la catégorie <em>i</em> autre que <em>O</em>. On ne peut pas comparer le score <em>F1</em>, le <em>recall</em> ou la <em>precision</em> à l'<em>accuracy</em> puisque:
+$$precision=\frac{\text{vrai positif}}{\text{positif}} $$
+
+Le recall *(true posotive rate)* permet de représenter la proportion d&#39;item positif corectement classé comme positif.
+La précision *(positive predictive value)* représente la proportion d&#39;item classé positif à raison (parmis les positifs).
+
+Le score *F1* permet donc de quantifier la qualité d&#39;un test, sa maximisation permet d&#39;avoir un compromis entre sa capacité à bien identifier un cas positif (précision) tout en restant sensible à un cas (recall).
+
+En effet la maximisation du *recall* ou de la *precision* seul n&#39;est pas viable, pour avoir un *recall=1* il suffit de classer tous les cas comme positif on a alors aucun faux négatif, mais notre test ne sers à rien puisque par exemple dans un contexte comme celui actuel il correspond à dire que tous le monde est malade. A l&#39;inverse avoir *precision=1* correspond à tendre vers le cas limite ou le nombre de faux positifs est nul et donc dans notre cas à ne considerer personne comme malade. On voit que le compromis entre les deux est indispensable.
+
+Ce qui est appellé *accuracy* pour le POS et le Chunking correspond au taux d&#39;erreur de classification (à plusieurs niveau). De plus précisons que le un vrai positif pour le score *F1* correspond à classer un terme à raison dans la catégorie *i* autre que *O*. On ne peut pas comparer le score *F1*, le *recall* ou la *precision* à l&#39;*accuracy* puisque: 
 $$accuracy=\frac{total - \text{(Vrai Positif+Vrai négatif)}}{total}=\frac{\text{faux positif + faux négatifs}}{total} $$
-$$\ (où \ total=VP+VF+FP+FN)$$</p>
-<h3 id="conclusion">Conclusion:</h3>
-<p>Nous remarquons déjà que pour le Chunking comme pour le POS l'erreur de classification est plus importante sur les mots inconnus que connus ce qui parait logique puisque il n'y a pas eu d'apprentissage sur les mots inconnus. Cette erreur est jusqu'à 25 fois plus importante sur les mots inconnus dans le POS et 2.5 fois plus importante pour le Chunking. On remarque ainsi que le <strong>POS est bien plus intolérant aux mots inconnus</strong> que le Chunking.
-Néamoins on remarque que l'erreur globale est inférieur à $10%$, une phrase est en moyenne composé de 10 mots, on peut donc considerer que l'on commet une erreur sur la fonction gramaticale.</p>
-<p>Pour ce qui est de la reconaissance des noms propres (NER) on remarque que la sensibilité pour les mots inconnus est de 0.5, cela signifie que 1 mot sur deux considéré comme un nom propre en est en fait pas un. De plus la sensibilité de l'algorithme (<em>recall</em>) est quasi nulle, c'est la double peine, en plus de se tromper une fois sur deux dans la consideration d'un nom propre, un recall faible correspond à un faible nombre de vrai positif: et donc peut de mots sont classés positifs Autrement dit quand le nom propre n'a pas été appris, il n'a quasiment aucune chance d'être reconnu en tant que tel ou dans la bonne catégorie.</p>
-<h2 id="question-5">Question 5:</h2>
-<hr>
-<p>Dans les fonctions de la question 3, la normalisatio de $\alpha$ et $\beta$ s'appelle de <em>rescaling</em> il a pour but d'assurer la convergence algorithmique. En effet $\alpha$ et $\beta$ peuvent atteindre des valeurs très faible qui par l'ordinateurs peuvant alors être considéré comme 0, là ou mathématiquement ils ne valent pas 0. Cela entraine alors des divisions par 0 ou des arrondis à 0 non désirables.</p>
-<p>Le <em>rescaling</em> permet donc d'éviter de se retrouver dans cette situation d'autans plus qu'il ne modifie par le résultat de l'algothme de <em>Forward</em> / <em>Backward</em>. En effet la methode MPM consite à selectionner la catégorie $i$ qui maximise la probabilité:
-$$\textit{(R)}: \ \ \ \mathbb{P}(X_t=i|y_{1:T})=\frac{\alpha_i(t)\beta_i(t)}{\sum_{j\in\Omega_X}\alpha_j(t)\beta_j(t)}$$
+$$\ (où \ total=VP+VF+FP+FN)$$
+
+### Conclusion
+
+  Nous remarquons déjà que pour le Chunking comme pour le POS l&#39;erreur de classification est plus importante sur les mots inconnus que connus ce qui parait logique puisque il n&#39;y a pas eu d&#39;apprentissage sur les mots inconnus. Cette erreur est jusqu&#39;à 25 fois plus importante sur les mots inconnus dans le POS et 2.5 fois plus importante pour le Chunking. On remarque ainsi que le **POS est bien plus intolérant aux mots inconnus** que le Chunking.
+  Néamoins on remarque que l&#39;erreur globale est inférieur à $10\%$, une phrase est en moyenne composé de 10 mots, on peut donc considerer que l&#39;on commet une erreur sur la fonction gramaticale. 
+
+  Pour ce qui est de la reconaissance des noms propres (NER) on remarque que la sensibilité pour les mots inconnus est de 0.5, cela signifie que 1 mot sur deux considéré comme un nom propre en est en fait pas un. De plus la sensibilité de l&#39;algorithme (*recall*) est quasi nulle, c&#39;est la double peine, en plus de se tromper une fois sur deux dans la consideration d&#39;un nom propre, un recall faible correspond à un faible nombre de vrai positif: et donc peut de mots sont classés positifs Autrement dit quand le nom propre n&#39;a pas été appris, il n&#39;a quasiment aucune chance d&#39;être reconnu en tant que tel ou dans la bonne catégorie.
+
+## Question 5
+
+Dans les fonctions de la question 3, la normalisatio de $\alpha$ et $\beta$ s&#39;appelle de *rescaling* il a pour but d&#39;assurer la convergence algorithmique. En effet $\alpha$ et $\beta$ peuvent atteindre des valeurs très faible qui par l&#39;ordinateurs peuvant alors être considéré comme 0, là ou mathématiquement ils ne valent pas 0. Cela entraine alors des divisions par 0 ou des arrondis à 0 non désirables. 
+
+Le *rescaling* permet donc d&#39;éviter de se retrouver dans cette situation d&#39;autans plus qu&#39;il ne modifie par le résultat de l&#39;algothme de *Forward* / *Backward*. En effet la methode MPM consite à selectionner la catégorie $i$ qui maximise la probabilité: 
+$$\textit{(R)}: \ \ \ \mathbb{P}(X_t=i|y_{1:T})=\frac{\alpha_i(t)\beta_i(t)}{\sum_{j\in\Omega_X}\alpha_j(t)\beta_j(t)}$$ 
 Considérons alors:
-$$\tilde{\alpha}<em>i(t)=\frac{\alpha_i(t)}{\sum</em>{k\in\Omega_X}\alpha_k(t)}$$
-$$\tilde{\beta}<em>i(t)=\frac{\beta_i(t)}{\sum</em>{k\in\Omega_X}\beta_k(t)}$$
-Notons:
+$$\tilde{\alpha}_i(t)=\frac{\alpha_i(t)}{\sum_{k\in\Omega_X}\alpha_k(t)}$$
+$$\tilde{\beta}_i(t)=\frac{\beta_i(t)}{\sum_{k\in\Omega_X}\beta_k(t)}$$
+Notons: 
 $$\Sigma_\alpha:=\sum_{k\in\Omega_X}\alpha_k(t)$$
 $$\Sigma_\beta:=\sum_{k\in\Omega_X}\beta_k(t)$$
-Qui ne dépendent pas de la catégorie $i$.</p>
-<p>Le rapport ${(\tilde{R})}$ s'écrit:
-$$\frac{\tilde{\alpha}<em>i(t)\tilde{\beta}<em>i(t)}{\sum</em>{j\in\Omega_X}\tilde{\alpha}<em>j(t)\tilde{\beta}<em>j(t)}$$
-$$=\frac{{\alpha}<em>i(t){\beta}<em>i(t)}{\Sigma</em>\alpha\Sigma</em>\beta\sum</em>{j\in\Omega_X}\frac{{\alpha}<em>j(t)}{\Sigma</em>\alpha}\frac{{\beta}<em>j(t)}{\Sigma</em>\beta}}=\frac{\alpha_i(t)\beta_i(t)}{\sum</em>{j\in\Omega_X}\alpha_j(t)\beta_j(t)}$$
-$$=\mathbb{P}(X_t=i|y</em>{1:T})$$</p>
-<p>La normalisation des coefficients $\alpha$ et $\beta$ n'a donc aucun impact sur maximisation et donc sur le résulat de l'algorithme.</p>
-<h2 id="question-6">Question 6</h2>
-<hr>
-<p>Dans les algorithme on voit apparaitre un paramètre $epsilon_laplace$ (defaut) dans la normalisation.
-Remarquons tout d'abord que cette modification ne modifie par la notion d'ordre.</p>
-<p>Soit: $f(x)=\frac{x+\epsilon}{\Sigma'+x+\epsilon}$ qui modélise la fonction de normalisation où $x$ correspond à $\alpha_i(t)$ ou $\beta_i(t)$ et $\Sigma'=\sum_{k\in\Omega_X}\alpha_k(t)-\alpha_i(t)$ ou $\Sigma'=\sum_{k\in\Omega_X}\beta_k(t)-\beta_i(t)$. On a donc $x\in\mathbb{R}^+$ et $\Sigma'\in\mathbb{R}^+$.</p>
-<p>Soit $h\in\mathbb{R}^+$, on suppose $\epsilon\in\mathbb{R}^+$ on a:
-$$f(x)-f(x+h)=\frac{x+\epsilon}{\Sigma'+x+\epsilon}-\frac{x+h+\epsilon}{\Sigma'+x+h+\epsilon}&lt;\frac{x+\epsilon}{\Sigma'+x+\epsilon}-\frac{x+h+\epsilon}{\Sigma'+x+\epsilon}$$
-$$&lt;-\frac{h}{\Sigma'+x+\epsilon}&lt;0$$
+Qui ne dépendent pas de la catégorie $i$.
+
+Le rapport ${(\tilde{R})}$ s&#39;écrit:
+$$\frac{\tilde{\alpha}_i(t)\tilde{\beta}_i(t)}{\sum_{j\in\Omega_X}\tilde{\alpha}_j(t)\tilde{\beta}_j(t)}$$
+$$=\frac{{\alpha}_i(t){\beta}_i(t)}{\Sigma_\alpha\Sigma_\beta\sum_{j\in\Omega_X}\frac{{\alpha}_j(t)}{\Sigma_\alpha}\frac{{\beta}_j(t)}{\Sigma_\beta}}=\frac{\alpha_i(t)\beta_i(t)}{\sum_{j\in\Omega_X}\alpha_j(t)\beta_j(t)}$$
+$$=\mathbb{P}(X_t=i|y_{1:T})$$
+
+La normalisation des coefficients $\alpha$ et $\beta$ n&#39;a donc aucun impact sur maximisation et donc sur le résulat de l&#39;algorithme.
+
+## Question 6
+
+Dans les algorithme on voit apparaitre un paramètre $epsilon\_laplace$ (defaut) dans la normalisation.
+Remarquons tout d&#39;abord que cette modification ne modifie par la notion d&#39;ordre.
+
+Soit: $f(x)=\frac{x+\epsilon}{\Sigma&#39;+x+\epsilon}$ qui modélise la fonction de normalisation où $x$ correspond à $\alpha_i(t)$ ou $\beta_i(t)$ et $\Sigma&#39;=\sum_{k\in\Omega_X}\alpha_k(t)-\alpha_i(t)$ ou $\Sigma&#39;=\sum_{k\in\Omega_X}\beta_k(t)-\beta_i(t)$. On a donc $x\in\mathbb{R}^+$ et $\Sigma&#39;\in\mathbb{R}^+$.
+
+Soit $h\in\mathbb{R}^+$, on suppose $\epsilon\in\mathbb{R}^+$ on a:
+$$f(x)-f(x+h)=\frac{x+\epsilon}{\Sigma&#39;+x+\epsilon}-\frac{x+h+\epsilon}{\Sigma&#39;+x+h+\epsilon}&lt;\frac{x+\epsilon}{\Sigma&#39;+x+\epsilon}-\frac{x+h+\epsilon}{\Sigma&#39;+x+\epsilon}$$
+$$&lt;-\frac{h}{\Sigma&#39;+x+\epsilon}&lt;0$$
 Ainsi:
 $$\forall h\in\mathbb{R}^+: f(x)&lt;f(x+h)$$
-D'où:
+D&#39;où:
 $$\forall (x_1,x_2)\in\mathbb{R}, x_1&lt;x_2 \Longrightarrow f(x_1)&lt;f(x_2)$$
-On en déduit donc qu'une telle modification ne change pas l'ordre et donc ne change en rien le résultat de la maximisation de l'algorithme. Par contre les valeurs du rapport sont alors &quot;amplifiés&quot;, et le rapport n'est plus sensible à un division par 0 lorque $\epsilon&gt;0$.</p>
-<p>L'objectif est donc à mes yeux que lorsque les $\alpha_i(t)$ sont très petits, leur somme $\Sigma_\alpha(t)$ l'est aussi. <strong>Par conséquent la normalisation peu entrainer une division par zéro qui est empéchée par l'ajout de ce coefficient</strong>.</p>
-<h2 id="question-7">Question 7</h2>
-<hr>
-<p>L'objectif est d'améliorer la classification des mots inconnus, pour cela on fonctionne de la manière suivante par exemple pour la methode forward de $\alpha_1$:</p>
-<pre class="hljs"><code><div>- Si le mot est connu dans l'ensemble d'apprentissage:
+On en déduit donc qu&#39;une telle modification ne change pas l&#39;ordre et donc ne change en rien le résultat de la maximisation de l&#39;algorithme. Par contre les valeurs du rapport sont alors &#34;amplifiés&#34;, et le rapport n&#39;est plus sensible à un division par 0 lorque $\epsilon&gt;0$.
+
+L&#39;objectif est donc à mes yeux que lorsque les $\alpha_i(t)$ sont très petits, leur somme $\Sigma_\alpha(t)$ l&#39;est aussi. **Par conséquent la normalisation peu entrainer une division par zéro qui est empéchée par l&#39;ajout de ce coefficient**.
+
+## Question 7
+
+L&#39;objectif est d&#39;améliorer la classification des mots inconnus, pour cela on fonctionne de la manière suivante par exemple pour la methode forward de $\alpha_1$:
+
+```pseudo
+- Si le mot est connu dans l&#39;ensemble d&#39;apprentissage:
     alpha_1[idi]=Pi_hmc[i]*list_B_hmc[0][i][list_Y[0][0]]
     on utilise la fomule classique comme dans la question 4
 - Si le mot est inconnu de cet ensemble:
   - Si sa terminaison (suffixe) est connue
       alpha_1[idi]=Pi_hmc[i]*list_B_hmc[1][i][list_Y[1][0]
-      On adapte en se plaçant sur le second ensemble d'apprentissage des terminaisons
+      On adapte en se plaçant sur le second ensemble d&#39;apprentissage des terminaisons
   - Sinon:
-      on fait l'approximation alpha_1[idi]=Pi_hmc[i]
-</div></code></pre>
-<h3 id="chunking">Chunking</h3>
-<p>Le Chunking permet la décomposition syntaxique.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>Chunking</em></th>
-<th style="text-align:center">Dataset 2000</th>
-<th style="text-align:center">Dataset 2003</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Accuracy</strong></td>
-<td style="text-align:center">7.09%</td>
-<td style="text-align:center">5.5%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">6.68%</td>
-<td style="text-align:center">5.21%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">12.54%</td>
-<td style="text-align:center">7.83%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>Time</strong></td>
-<td style="text-align:center">0.39s*</td>
-<td style="text-align:center">1.60s</td>
-</tr>
-</tbody>
-</table>
-<h3 id="pos">POS</h3>
-<p>Le Part Of Speech consiste à labeliser les mots par leur fonction gamaticale</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>POS</em></th>
-<th style="text-align:center">Dataset 2000</th>
-<th style="text-align:center">Dataset 2003</th>
-<th style="text-align:center">Dataset UD English</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Accuracy</strong></td>
-<td style="text-align:center">3.43%</td>
-<td style="text-align:center">6.25%</td>
-<td style="text-align:center">9.00%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">1.94%</td>
-<td style="text-align:center">4.04%</td>
-<td style="text-align:center">6.14%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">23.35%</td>
-<td style="text-align:center">23.83%</td>
-<td style="text-align:center">40.30%</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>Time</strong></td>
-<td style="text-align:center">0.83s</td>
-<td style="text-align:center">1.03s</td>
-<td style="text-align:center">1.06s</td>
-</tr>
-</tbody>
-</table>
-<h3 id="ner">NER</h3>
-<p>La Named entity recognition correspond à la reconaissance des noms propres</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"><em>NER dataset 2003</em></th>
-<th style="text-align:center">Précision</th>
-<th style="text-align:center">Recall</th>
-<th style="text-align:center">F1</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left"><strong>Résultat</strong></td>
-<td style="text-align:center">0.75</td>
-<td style="text-align:center">0.80</td>
-<td style="text-align:center">0.78</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>KW</strong></td>
-<td style="text-align:center">0.88</td>
-<td style="text-align:center">0.87</td>
-<td style="text-align:center">0.87</td>
-</tr>
-<tr>
-<td style="text-align:left"><strong>UW</strong></td>
-<td style="text-align:center">0.44</td>
-<td style="text-align:center">0.60</td>
-<td style="text-align:center">0.51</td>
-</tr>
-</tbody>
-</table>
-<p>training time: $1.00s$</p>
-<h3 id="conclusion">Conclusion:</h3>
-<p>Pour le Chunking l'amélioration est faible, c'était à mes yeux prévisible puisqu'il s'agit de la reconnaissance des mots par syntaxe. Or la langue anglaise a peu de suffixes pour les composantss liés aux verbe ou aux noms. Je ne vois personnellement que la marque du possesif &quot;s&quot;. Ce qui expliquerait cette faible amélioration. Je pense que si l'on travaillait sur des texte en Français l'amélioration serait notable ici avec tout les &quot;ant&quot;, &quot;ement&quot;, ... de la langue.</p>
-<p>Par contre le POS bénéficie d'une bonne amélioration en tant qu'acteur de la détermination des Noms et des verbes, les noms sont souvent en début de phrase et prennent donc une majuscule même quand ce n'est pas des noms propres, pour les verbes on peut reconnaitre la terminaison &quot;ing&quot;. Cette amélioration à multiplié par 2 les performances sur les mots inconnus des dataset 2000 et 2003.</p>
-<p>Pour le NER la statégie des majuscules a bien fonctionné, la précision à considérablement augmenté, beaucoup plus de mots sont considérés, et en plus le recall à également augmenté, les positifs sont plus souvent (en terme de probabilité) marqué à juste titre comme nom propre dans la bonne catégorie)</p>
-<h2 id="question-8">Question 8</h2>
-<hr>
-<p><em>Bonus non réalisé</em></p>
+      on fait l&#39;approximation alpha_1[idi]=Pi_hmc[i]
+```
 
+### Chunking
+
+Le Chunking permet la décomposition syntaxique.
+| *Chunking* | Dataset 2000       | Dataset 2003   |
+| :---------- |:---------:|:----------:|
+| **Accuracy**    | 7.09%   | 5.5%|
+| **KW**       | 6.68%   |  5.21%|
+| **UW**          | 12.54%   | 7.83%|
+| **Time**        | 0.39s*   |  1.60s|
+
+### POS
+
+Le Part Of Speech consiste à labeliser les mots par leur fonction gamaticale
+| *POS*         | Dataset 2000| Dataset 2003|Dataset UD English|
+| :---------- |:-----------:|:-----------:|:-------:|
+| **Accuracy**    | 3.43%       | 6.25%       | 9.00%  |
+| **KW**          | 1.94%       |  4.04%      | 6.14%   |
+| **UW**          | 23.35%      | 23.83%      | 40.30%  |
+| **Time**        | 0.83s         | 1.03s            | 1.06s |
+### NER
+
+La Named entity recognition correspond à la reconaissance des noms propres
+| *NER dataset 2003* | Précision  | Recall | F1|
+| :---------- |:---------:|:---------:|:---------:|
+| **Résultat**|  0.75    |   0.80    |   0.78   |
+| **KW**      |  0.88    |   0.87    |   0.87   |
+| **UW**      |  0.44    |   0.60    |   0.51   |
+training time: $1.00s$
+
+### Conclusion
+
+Pour le Chunking l&#39;amélioration est faible, c&#39;était à mes yeux prévisible puisqu&#39;il s&#39;agit de la reconnaissance des mots par syntaxe. Or la langue anglaise a peu de suffixes pour les composantss liés aux verbe ou aux noms. Je ne vois personnellement que la marque du possesif &#34;s&#34;. Ce qui expliquerait cette faible amélioration. Je pense que si l&#39;on travaillait sur des texte en Français l&#39;amélioration serait notable ici avec tout les &#34;ant&#34;, &#34;ement&#34;, ... de la langue.
+
+Par contre le POS bénéficie d&#39;une bonne amélioration en tant qu&#39;acteur de la détermination des Noms et des verbes, les noms sont souvent en début de phrase et prennent donc une majuscule même quand ce n&#39;est pas des noms propres, pour les verbes on peut reconnaitre la terminaison &#34;ing&#34;. Cette amélioration à multiplié par 2 les performances sur les mots inconnus des dataset 2000 et 2003.
+
+  Pour le NER la statégie des majuscules a bien fonctionné, la précision à considérablement augmenté, beaucoup plus de mots sont considérés, et en plus le recall à également augmenté, les positifs sont plus souvent (en terme de probabilité) marqué à juste titre comme nom propre dans la bonne catégorie).
+
+## Question 8
+
+*Bonus non réalisé*</div>
+    <div class="ui-toc dropup unselectable hidden-print" style="display:none;">
+        <div class="pull-right dropdown">
+            <a id="tocLabel" class="ui-toc-label btn btn-default" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="Table of content">
+                <i class="fa fa-bars"></i>
+            </a>
+            <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
+            </ul>
+        </div>
+    </div>
+    <div id="ui-toc-affix" class="ui-affix-toc ui-toc-dropdown unselectable hidden-print" data-spy="affix" style="display:none;"></div>
+    
 </body>
+
 </html>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({ messageStyle: "none", skipStartupTypeset: true ,tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], processEscapes: true }});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.4.0/velocity.min.js" integrity="sha256-bhm0lgEt6ITaZCDzZpkr/VXVrLa5RP4u9v2AYsbzSUk=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js" integrity="sha256-jnOjDTXIPqall8M0MyTSt98JetJuZ7Yu+1Jm7hLTF7U=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.7.0/js-yaml.min.js" integrity="sha256-8PanqYAVOGlOct+i65R+HqibK3KPsXINnrSfxN+Y/J0=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js" integrity="sha256-yYfngbEKv4RENfGDvNUqJTqGFcKf31NJEe9OTnnMH3Y=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-immzXfCGLhnx3Zfi9F/dUcqxEM8K3o3oTFy9Bh6HCwg=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment-with-locales.min.js" integrity="sha256-vvT7Ok9u6GbfnBPXnbM6FVDEO8E1kTdgHOFZOAXrktA=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/7.1.0/mermaid.min.js" integrity="sha256-M3OC0Q6g4/+Q4j73OvnsnA+lMkdAE5KgupRHqTiPbnI=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/emojify.js/1.1.0/js/emojify.min.js" integrity="sha256-VAB5tAlKBvgaxw8oJ1crWMVbdmBVl4mP/2M8MNRl+4E=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.6/handlebars.min.js" integrity="sha256-1O3BtOwnPyyRzOszK6P+gqaRoXHV6JXj8HkjZmPYhCI=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js" integrity="sha256-KbfTjB0WZ8vvXngdpJGY3Yp3xKk+tttbqClO11anCIU=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gist-embed/2.6.0/gist-embed.min.js" integrity="sha256-KyF2D6xPIJUW5sUDSs93vWyZm+1RzIpKCexxElmxl8g=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/1.7.0/viz.js" integrity="sha256-8t+rndrF+TU4JtelmOH1lDHTMe2ovhO2UbzDArp5lY8=" crossorigin="anonymous" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/abcjs/3.1.1/abcjs_basic-min.js" integrity="sha256-Sq1r2XXWXQoShQKsS0Wrf5r7fRkErd9Fat9vHYeU68s=" crossorigin="anonymous"></script>
+<script src="https://markdown.data-ensta.fr/build/constant.js"></script>
+
+<script src="https://markdown.data-ensta.fr/build/4.pretty.0b3492755fae330ae2bf.js" defer></script>
+
+
+
+
